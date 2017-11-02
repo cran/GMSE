@@ -75,6 +75,10 @@ void dens_est(double **obs_array, double *paras, double **agent_array,
     cells   = land_x * land_y; /* Plus one needed for zero index */
     tot_obs = 0;
     
+    if(area > cells){
+        area = cells;
+    }
+    
     for(resource = 0; resource < int_table_rows; resource++){
         abun_est[resource] = 0;
         if(interact_table[resource][0] == 0){ /* Change when turn off type? */
@@ -273,6 +277,36 @@ void estimate_abundances(double **obs_array, double *paras, int **lookup,
     }
 }
 
+/* =============================================================================
+ * This function updates the marginal abundances
+ *     actions:        The array of the action of agents
+ *     abun_est:       Vector where abundance estimates for each type are held
+ *     temp_util:      Temporary utilities pulled from actions
+ *     marg_util:      The marginal utility of each resource
+ *     int_d0:         The length of the abun_est, temp_util, & marg_util arrays
+ *     a_x:            Number of rows in the actions array
+ * ========================================================================== */
+void update_marg_util(double ***actions, double *abun_est, double *temp_util, 
+                      double *marg_util, int int_d0, int a_x){
+    
+    int row, i;
+    
+    for(row = 0; row < int_d0; row++){
+        temp_util[row] = 0;
+        marg_util[row] = 0;
+        if(actions[row][0][0] < 0){
+            temp_util[row] = actions[row][4][0];
+            marg_util[row] = temp_util[row] - abun_est[row];
+        }
+    }
+    i = 0;
+    for(row = 0; row < a_x; row++){
+        if(actions[row][0][0] == 1){
+            actions[row][4][0] = marg_util[i];
+            i++;
+        }
+    }
+}
 
 /* =============================================================================
  * This function uses the observation array to estimate resource abundances
@@ -358,7 +392,7 @@ SEXP manager(SEXP RESOURCE, SEXP LANDSCAPE, SEXP PARAMETERS, SEXP AGENT,
  
     /* SOME STANDARD DECLARATIONS OF KEY VARIABLES AND POINTERS               */
     /* ====================================================================== */
-    int xloc, yloc, i;       /* Index of x & y locations on the landscape */ 
+    int xloc, yloc;          /* Index of x & y locations on the landscape */ 
     int land_x, land_y;      /* x and y maximum location given LANDSCAPE */
     int zloc, land_z;        /* z locations */
     int c_x, c_y, c_z;       /* Dimensions of cost array */
@@ -610,23 +644,9 @@ SEXP manager(SEXP RESOURCE, SEXP LANDSCAPE, SEXP PARAMETERS, SEXP AGENT,
     temp_util = malloc(int_d0 * sizeof(double));
     marg_util = malloc(int_d0 * sizeof(double));
     
-    estimate_abundances(obs_array, paras, lookup, agent_array, abun_est);
-    
-    for(row = 0; row < int_d0; row++){
-        temp_util[row] = 0;
-        marg_util[row] = 0;
-        if(actions[row][0][0] < 0){
-            temp_util[row] = actions[row][4][0];
-            marg_util[row] = temp_util[row] - abun_est[row];
-        }
-    }
-
-    i = 0;
-    for(row = 0; row < a_x; row++){
-        if(actions[row][0][0] == 1){
-            actions[row][4][0] = marg_util[i];
-            i++;
-        }
+    if(paras[8] >= 0){ /* If less than zero, the above already in actions */
+        estimate_abundances(obs_array, paras, lookup, agent_array, abun_est);
+        update_marg_util(actions, abun_est, temp_util, marg_util, int_d0, a_x);
     }
     
     ga(actions, costs, agent_array, resource_array, land, Jacobian_mat, 

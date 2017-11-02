@@ -169,7 +169,8 @@ make_costs <- function(AGENTS, RESOURCES, res_opts, lnd_opts, min_cost){
     COST <- array(data = unlist(COST_LIST), dim = dim_u);
     
     res_num    <- sum(COST[,1,1] == -2);
-    res_opts_m <- matrix(data = rep(res_opts, res_num), nrow = res_num);
+    res_opts_m <- matrix(data  = rep(res_opts, res_num), nrow = res_num,
+                         byrow = TRUE);
     lnd_num    <- sum(COST[,1,1] == -1);
     lnd_opts_m <- matrix(data = rep(lnd_opts, lnd_num), nrow = lnd_num);
     
@@ -318,5 +319,6 @@ make_interaction_table <- function(RESOURCES, LAND){
     landscape_part[,2] <- 1:landscape_count;
     
     the_table <- rbind(resource_part, landscape_part);
+    return(the_table);
 }
                                    

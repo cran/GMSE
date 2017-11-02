@@ -19,7 +19,7 @@ resource <- function(RESOURCES = NULL,
                      LAND      = NULL, 
                      PARAS     = NULL,
                      model     = "IBM"
-                     ) {
+                    ) {
     check_model <- 0;
     if(model == "IBM"){
         # Relevant warnings below if the inputs are not of the right type
@@ -32,6 +32,12 @@ resource <- function(RESOURCES = NULL,
         if(!is.vector(PARAS) | !is.numeric(PARAS)){
             stop("Warning: Parameters must be in a numeric vector");
         }
+        if(dim(RESOURCES)[2] != 20){
+            stop("The RESOURCES array has the wrong number of columns");
+        }
+        if(dim(LAND)[3] != 3){
+            stop("The landscape doesn't have enough layers");
+        }
         # If all checks out, then run the population model
         RESOURCE_OUT <- run_resource_a( RESOURCE_c   = RESOURCES,
                                         LANDSCAPE_c  = LAND,
@@ -39,8 +45,9 @@ resource <- function(RESOURCES = NULL,
         check_model <- 1;
     }
     if(check_model == 0){
-        stop("Invalid model selected (Must be 'IBM')");
+        stop("Invalid model selected");
     }
+    names(RESOURCE_OUT) <- c("RESOURCES", "LAND", "PARAS");
     return(RESOURCE_OUT);
 }
 

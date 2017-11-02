@@ -91,7 +91,7 @@ dens_est <- function(observation, paras, view = view, land = land){
     area    <- area * paras[12];
     ob_strt <- paras[42] + 1;
     endrow  <- dim(observation)[2];
-    tot_obs <- sum(observation[,21:endrow]);
+    tot_obs <- sum(observation[,ob_strt:endrow]);
     prp     <- tot_obs / area;
     est     <- prp * cells;
     lcp     <- prp - 1.96 * sqrt(prp / (vision * vision));
@@ -534,6 +534,7 @@ case01plot <- function(res, obs, land1, land2, land3, agents, paras, ACTION,
 #'@param COST A three dimensional array of cost values for agent (manager and stakeholder) actions
 #'@importFrom grDevices topo.colors
 #'@importFrom graphics abline axis image mtext par plot points polygon legend
+#'@importFrom graphics text
 #'@importFrom stats rnorm rpois
 #'@return This function plots the dynamics of GMSE resource, observation, managemer, and user models in six separate sub-panels. (1) Upper left panel: Shows the locations of resources on the landscape (black dots); landscape terrain is also shown in brown, but at the moment, this is only cosmetic and does not reflect anything occurring in the model. (2) Upper right panel: Shows ownership of land by agents; land is divided proportional based on parameters set in gmse() and colours correspond with other subplots. If agent utilities and actions are restricted to land (`land_ownership` in the gmse() function), then this gives some idea of where actions are being performed and where resources are affecting the landscape. (3) Middle left panel: Shows the actual population abundance (black solid line) and the population abundance estimated by the manager (blue solid line; shading indicates 95 percent confidence intervals) over time. The dotted red line shows the resource carrying capacity (death-based) and the dotted blue line shows the target for resource abundance as set in the gmse() function; the orange line shows the total percent yield of the landscape (i.e., 100 percent means that resources have not decreased yield at all, 0 percent means that resources have completely destroyed all yield). (4) Middle right panel: Shows the raw landscape yield for each stakeholder (can be ignored if `land_ownership` is FALSE) over time; colours correspond to land ownership shown in the upper right panel. (5) Lower left panel: The cost of stakeholders performing actions over time, as set by the manager. (6) Lower right panel: The total number of actions performed by all stakeholders over time.
 #'@examples
@@ -628,15 +629,18 @@ plot_gmse_results <- function(res, obs, land, agents, paras, ACTION, COST){
             lci      <- c(lci, analysis$lci);
             uci      <- c(uci, analysis$uci);
         }
-        for(stakeholder in 1:dim(ages)[2]){
-            max_yield   <- sum(land3 == stakeholder);
-            agent_yield <- rep(x = NA, max_time);
-            if(max_yield > 0 & para_vec[104] > 0){
-                agent_yield <- 100 * (ages[,stakeholder] / max_yield);
-            }
+    }
+    for(stakeholder in 1:dim(ages)[2]){
+        max_yield   <- sum(land3 == stakeholder);
+        agent_yield <- rep(x = NA, max_time);
+        if(max_yield > 0 & para_vec[104] > 0){
+            agent_yield <- 100 * (ages[,stakeholder] / max_yield);
+        }
+        if(para_vec[104] > 0){
             stky[[stakeholder]] <- agent_yield;
         }
     }
+    
     if(case > 1){
         est <- paras[,100];
     }
@@ -764,3 +768,235 @@ plot_gmse_results <- function(res, obs, land, agents, paras, ACTION, COST){
                col = "orange", lwd = 3);
     }
 }
+
+####################################################################
+## Plot the effort of each user
+####################################################################
+#' Plot the effort made by each user for each action
+#'
+#' Produce a five panel plot in which each panel compares the permissiveness of each action (scaring, culling, etc.) from the manager with the effort put into each action by individual users.
+#' 
+#'@param agents The array of agents produced in the main gmse() function
+#'@param paras The array of parameters that hold global and dynamic parameter values used by GMSE
+#'@param ACTION A three dimensional array of agent (manager and stakeholder) actions
+#'@param COST A three dimensional array of cost values for agent (manager and stakeholder) actions
+#'@importFrom grDevices topo.colors
+#'@importFrom graphics abline axis image mtext par plot points polygon legend
+#'@importFrom stats rnorm rpois
+#'@return This function plots the permissiveness that each manager exhibits for each user action (scaring, culling, etc.) and the effort that each individual user puts into each action over time. On the left axis, permissiveness is calculated as 100 minus the percent of the manager's budget put into increasing the cost of a particular action, so, e.g., if a manager puts all of their effort into increasing the cost of culling, then permissiveness of culling is 0; if they put none of their effort into increasing the cost of culling, then permissiveness of culling is 100. On the right axis, percentage of user action expended is the percent of a user's budget put into a particular action (note, these might not add up to 100 because users are not forced to use their entire budget). Coloured lines that are above black lines could potentially (cautiously) be interpreted as conflict between managers and users.
+#'@examples
+#'\dontrun{
+#'plot_gmse_effort(sim$agents, sim$paras, ACTION = sim$action, COST = sim$cost);
+#'}
+#'@export
+plot_gmse_effort <- function(agents, paras, ACTION, COST){
+    
+    cols      <- c("green", "indianred1", "indianred3", "deepskyblue1",
+                   "deepskyblue2");
+    
+    users    <- dim(agents[[1]])[1];
+    max_time <- length(ACTION);
+    
+    para_vec <- paras[1,];
+    
+    allowed  <- sum(para_vec[89:93]);
+
+    scar_cst  <- matrix(data = 0, nrow = max_time, ncol = users);
+    cull_cst  <- matrix(data = 0, nrow = max_time, ncol = users);
+    cast_cst  <- matrix(data = 0, nrow = max_time, ncol = users);
+    feed_cst  <- matrix(data = 0, nrow = max_time, ncol = users);
+    help_cst  <- matrix(data = 0, nrow = max_time, ncol = users);
+    
+    scar_act  <- matrix(data = 0, nrow = max_time, ncol = users);
+    cull_act  <- matrix(data = 0, nrow = max_time, ncol = users);
+    cast_act  <- matrix(data = 0, nrow = max_time, ncol = users);
+    feed_act  <- matrix(data = 0, nrow = max_time, ncol = users);
+    help_act  <- matrix(data = 0, nrow = max_time, ncol = users);
+
+    scar_eff  <- matrix(data = 0, nrow = max_time, ncol = users);
+    cull_eff  <- matrix(data = 0, nrow = max_time, ncol = users);
+    cast_eff  <- matrix(data = 0, nrow = max_time, ncol = users);
+    feed_eff  <- matrix(data = 0, nrow = max_time, ncol = users);
+    help_eff  <- matrix(data = 0, nrow = max_time, ncol = users);    
+
+    act_costs  <- matrix(data = 0, nrow = max_time, ncol = 5);
+    pol_effort <- matrix(data = 0, nrow = max_time, ncol = 5);
+    min_cost   <- para_vec[97];
+    
+    for(time in 1:max_time){
+        #-- Scaring cost and actions
+        scar_cst[time, 1] <- COST[[time]][3, 8, 1];
+        for(user in 2:users){
+            scar_cst[time, user] <- COST[[time]][1, 8, user];
+        }
+        scar_act[time, 1] <- ACTION[[time]][3, 8, 1] - min_cost;
+        for(user in 2:users){
+            scar_act[time, user] <- ACTION[[time]][1, 8, user];
+        }
+        scar_eff[time,] <- scar_act[time,]*scar_cst[time,]/agents[[time]][,17];
+        #-- Culling cost and actions
+        cull_cst[time, 1] <- COST[[time]][3, 9, 1];
+        for(user in 2:users){
+            cull_cst[time, user] <- COST[[time]][1, 9, user];
+        }
+        cull_act[time, 1] <- ACTION[[time]][3, 9, 1] - min_cost;
+        for(user in 2:users){
+            cull_act[time, user] <- ACTION[[time]][1, 9, user];
+        }
+        cull_eff[time,] <- cull_act[time,]*cull_cst[time,]/agents[[time]][,17];
+        #-- Castration cost and actions
+        cast_cst[time, 1] <- COST[[time]][3, 10, 1];
+        for(user in 2:users){
+            cast_cst[time, user] <- COST[[time]][1, 10, user];
+        }
+        cast_act[time, 1] <- ACTION[[time]][3, 10, 1] - min_cost;
+        for(user in 2:users){
+            cast_act[time, user] <- ACTION[[time]][1, 10, user];
+        }
+        cast_eff[time,] <- cast_act[time,]*cast_cst[time,]/agents[[time]][,17];
+        #-- Feeding cost and actions
+        feed_cst[time, 1] <- COST[[time]][3, 11, 1];
+        for(user in 2:users){
+            feed_cst[time, user] <- COST[[time]][1, 11, user];
+        }
+        feed_act[time, 1] <- ACTION[[time]][3, 11, 1] - min_cost;
+        for(user in 2:users){
+            feed_act[time, user] <- ACTION[[time]][1, 11, user];
+        }
+        feed_eff[time,] <- feed_act[time,]*feed_cst[time,]/agents[[time]][,17];
+        #-- Helping cost and actions
+        help_cst[time, 1] <- COST[[time]][3, 12, 1];
+        for(user in 2:users){
+            help_cst[time, user] <- COST[[time]][1, 12, user];
+        }
+        help_act[time, 1] <- ACTION[[time]][3, 12, 1] - min_cost;
+        for(user in 2:users){
+            help_act[time, user] <- ACTION[[time]][1, 12, user];
+        }
+        help_eff[time,] <- help_act[time,]*help_cst[time,]/agents[[time]][,17];
+    }
+
+    # -- Turn these into percentages:
+    scar_eff <- scar_eff * 100;
+    cull_eff <- cull_eff * 100;
+    cast_eff <- cast_eff * 100;
+    feed_eff <- feed_eff * 100;
+    help_eff <- help_eff * 100;
+    
+    par(mfrow = c(5, 1), mar = c(0, 0, 0, 0), oma = c(6, 6, 4, 6));
+    y1 <- 100;
+    y2 <- y1 * 1.2
+    #---- Scaring
+    if(para_vec[89] == 1){
+        plot(x = 1:max_time, y = 100 - scar_eff[,1], type = "l", lwd = 2, 
+             cex.axis = 1.5, xaxt = "n", ylim = c(0, y2), yaxt = "n");
+        axis(side = 2, at = c(50, 100), labels = c(50, 100), cex.axis = 1.5);
+        par(new = TRUE);
+        plot(x = 1:max_time, y = scar_eff[,2], type = "n", lwd = 2, 
+             ylim = c(0, y2), xaxt="n", yaxt="n", 
+             cex.axis = 1.5);
+        for(stakeholder in 2:users){
+            points(x = 1:max_time, y = scar_eff[,stakeholder], type = "l", 
+                   lwd = 1, col = cols[1]);
+        }
+        axis(side = 4, at = c(50, 100),  labels = c(50, 100), cex.axis = 1.5);
+        legend(x = 1, y = y2 + y2*0.1, fill = cols[1:5], horiz = TRUE,
+               legend = c("scaring", "culling", "castration", "feeding", 
+                          "helping"), bty = "n", cex = 1.5);
+        abline(h = y1 + y1*0.1, lwd = 2);
+    }else{
+        plot(x = 1:max_time, y = scar_eff[,1], type = "n", xaxt= "n", 
+             yaxt = "n", ylim = c(0, 110));
+        text(x = 0, y = 90, cex = 2, labels = "No scaring allowed",
+             pos = 4);
+        abline(h = 100, lwd = 2);
+        legend(x = 1, y = 119, fill = cols[1:5], horiz = TRUE,
+               legend = c("scaring", "culling", "castration", "feeding", 
+                          "helping"), bty = "n", cex = 1.5);
+    }
+    #---- Culling
+    if(para_vec[90] == 1){
+        plot(x = 1:max_time, y = 100 - cull_eff[,1], type = "l", lwd = 2, 
+             cex.axis = 1.5, xaxt = "n", ylim = c(0, y1), yaxt = "n");
+        axis(side = 2, at = c(50, 100), labels = c(50, 100), cex.axis = 1.5);
+        par(new = TRUE);
+        plot(x = 1:max_time, y = cull_eff[,2], type = "n", lwd = 2, 
+             ylim = c(0, y1), xaxt="n", yaxt="n", cex.axis = 1.5);
+        for(stakeholder in 2:users){
+            points(x = 1:max_time, y = cull_eff[,stakeholder], type = "l", 
+                   lwd = 1, col = cols[2]);
+        }
+        axis(side = 4, at = c(50, 100), labels = c(50, 100), cex.axis = 1.5);
+    }else{
+        plot(x = 1:max_time, y = cull_act[,1], type = "n", xaxt= "n", 
+             yaxt = "n", ylim = c(0, 100));
+        text(x = 0, y = 90, cex = 2, labels = "No culling allowed",
+             pos = 4);
+    }
+    #---- Castrating
+    if(para_vec[91] == 1){
+        plot(x = 1:max_time, y = 100 - cast_eff[,1], type = "l", lwd = 2, 
+             cex.axis = 1.5, xaxt = "n", ylim = c(0, y1), yaxt = "n");
+        axis(side = 2, at = c(50, 100), labels = c(50, 100), cex.axis = 1.5);
+        par(new = TRUE);
+        plot(x = 1:max_time, y = cast_eff[,2], type = "n", lwd = 2, 
+             ylim = c(0, y1), xaxt="n", yaxt="n", cex.axis = 1.5);
+        for(stakeholder in 2:users){
+            points(x = 1:max_time, y = cast_eff[,stakeholder], type = "l", 
+                   lwd = 1, col = cols[3]);
+        }
+        axis(side = 4, at = c(50, 100), labels = c(50, 100), cex.axis = 1.5);
+    }else{
+        plot(x = 1:max_time, y = cast_act[,1], type = "n", xaxt= "n", 
+             yaxt = "n", ylim = c(0, 100));
+        text(x = 0, y = 90, cex = 2, labels = "No castration allowed",
+             pos = 4);
+    }
+    #---- Axes labels
+    mtext("Manager's permissiveness of user action", 
+          side = 2, line = 3.5, cex = 1.5, col = "black");
+    mtext("Percentage of user action effort expended", 
+          side = 4, line = 3.5, cex = 1.5, col = "black");
+    #---- Feeding
+    if(para_vec[92] == 1){
+        plot(x = 1:max_time, y = 100 - feed_eff[,1], type = "l", lwd = 2, 
+             cex.axis = 1.5, xaxt = "n", ylim = c(0, y1), yaxt = "n");
+        axis(side = 2, at = c(50, 100), labels = c(50, 100), cex.axis = 1.5);
+        par(new = TRUE);
+        plot(x = 1:max_time, y = feed_eff[,2], type = "n", lwd = 2, 
+             ylim = c(0, y1), xaxt="n", yaxt="n", cex.axis = 1.5);
+        for(stakeholder in 2:users){
+            points(x = 1:max_time, y = feed_eff[,stakeholder], type = "l", 
+                   lwd = 1, col = cols[4]);
+        }
+        axis(side = 4, at = c(50, 100), labels = c(50, 100), cex.axis = 1.5);
+    }else{
+        plot(x = 1:max_time, y = feed_act[,1], type = "n", xaxt= "n", 
+             yaxt = "n", ylim = c(0, 100));
+        text(x = 0, y = 90, cex = 2, labels = "No feeding allowed",
+             pos = 4);
+    }
+    #---- Helping
+    if(para_vec[93] == 1){
+        plot(x = 1:max_time, y = 100 - help_eff[,1], type = "l", lwd = 2, 
+             cex.axis = 1.5, xaxt = "n", ylim = c(0, y1), yaxt = "n");
+        axis(side = 2, at = c(50, 100), labels = c(50, 100), cex.axis = 1.5);
+        par(new = TRUE);
+        plot(x = 1:max_time, y = help_eff[,2], type = "n", lwd = 2, 
+             ylim = c(0, y1), xaxt="n", yaxt="n", cex.axis = 1.5);
+        for(stakeholder in 2:users){
+            points(x = 1:max_time, y = help_eff[,stakeholder], type = "l", 
+                   lwd = 1, col = cols[5]);
+        }
+        axis(side = 4, at = c(50, 100), labels = c(50, 100), cex.axis = 1.5);
+    }else{
+        plot(x = 1:max_time, y = help_act[,1], type = "n", cex.axis = 1.5,
+             yaxt = "n", ylim = c(0, 100));
+        text(x = 0, y = 90, cex = 2, labels = "No helping offspring allowed",
+             pos = 4);
+    }    
+    mtext("Time step", side = 1, line = 3.5, cex = 1.5, col = "black");
+}
+
+
+

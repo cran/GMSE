@@ -12,6 +12,7 @@
 #'@param inter_tabl Interaction table indexing types with the INTERACT matrix
 #'@param model The type of model being applied (Currently only individual-based
 #' -- i.e., 'agent-based' -- models are allowed)
+#'@param ... Other arguments to be passed to a user-defined model
 #'@return The user function outputs an R list that includes five separate arrays, including (1) an new RESOURCES array, (2) a new AGENTS array, (3) a new LAND array, (4) a new ACTIONS array, and a new (5) COST array, each of which might be affected by the user function. The new arrays can then be read back into the broader GMSE function, thereby affecting the input into the resource, observation, and management models.
 #'@examples
 #'\dontrun{
@@ -29,7 +30,7 @@ user <- function(RESOURCES  = NULL,
                  INTERACT   = NULL,
                  inter_tabl = NULL,
                  model      = "IBM"
-) {
+                ){
     check_model <- 0;
     if(model == "IBM"){
         # Relevant warnings below if the inputs are not of the right type
@@ -51,6 +52,15 @@ user <- function(RESOURCES  = NULL,
         if(!is.vector(PARAS) | !is.numeric(PARAS)){
             stop("Warning: Parameters must be in a numeric vector");
         }
+        if(dim(RESOURCES)[2] != 20){
+            stop("The RESOURCES array has the wrong number of columns");
+        }
+        if(dim(LAND)[3] != 3){
+            stop("The landscape doesn't have enough layers");
+        }
+        if(dim(AGENTS)[2] != 17){
+            stop("The agent array has the wrong number of columns");
+        }
         # If all checks out, then run the user model
         USER_OUT <- run_user(RESOURCE_c    = RESOURCES,
                              LANDSCAPE_c   = LAND,
@@ -66,6 +76,7 @@ user <- function(RESOURCES  = NULL,
     if(check_model == 0){
         stop("Invalid model selected (Must be 'IBM')");
     }
+    names(USER_OUT) <- c("RESOURCES", "AGENTS", "LAND", "ACTION", "COST");
     return(USER_OUT);
 }
 
