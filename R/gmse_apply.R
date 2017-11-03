@@ -48,7 +48,7 @@ gmse_apply <- function(res_mod  = resource,
     if(is.null(old_list) == FALSE){
         arg_vals <- apply_old_gmse(arg_vals, old_list, ...);
     }
-    
+ 
     # ------ RESOURCE MODEL ----------------------------------------------------
     res_args <- prep_res(arg_list = arg_vals, res_mod = res_mod);
     check_args(arg_list = res_args, the_fun = res_mod);
@@ -173,7 +173,7 @@ update_old_gmse <- function(arg_vals, ol, list_add){
             ol$PARAS[76]  <- -1*mas*(1+lambda);
             ol$PARAS[77]  <- -1*mas*lambda;
             ol$PARAS[78]  <-  1*lambda;
-            ol$PARAS[106] <- lambda;
+            ol$PARAS[101] <- lambda;
         }
         ol$lambda <- list_add$lambda;
     }
@@ -521,7 +521,7 @@ update_old_gmse <- function(arg_vals, ol, list_add){
     if("group_think" %in% names_add){
         ol$group_think     <- list_add$group_think;
         if(is.null(ol$PARAS) == FALSE & is.na(ol$PARAS)[1] == FALSE){
-            ol$PARAS[107] <- list_add$group_think;
+            ol$PARAS[102] <- list_add$group_think;
         }
     }
     return(ol);
@@ -660,8 +660,8 @@ pass_paras <- function( old_list = NULL, time_max = 100, land_dim_1 = 100,
                user_res_opts[1], user_res_opts[2], user_res_opts[3], 
                user_res_opts[4], user_res_opts[5], user_lnd_opts[1], 
                user_lnd_opts[2], manage_caution, minimum_cost, user_budget, 
-               converge_crit, RESOURCE_ini, 0, 0, fixed_recapt, land_ownership, 
-               public_land, lambda, group_think
+               converge_crit, RESOURCE_ini, lambda, group_think, fixed_recapt, 
+               land_ownership, public_land
     );
     
     return( list(gmse_user_input = as.vector(input_list), 
@@ -1365,7 +1365,7 @@ add_results <- function(arg_list, output){
     out_names <- names(output);
     for(i in 1:length(output)){
         if(out_names[[i]] %in% arg_names == TRUE){
-            rep_pos <- which(arg_names == out_names[[i]]);
+            rep_pos <- which(arg_names == out_names[[i]])[1];
             arg_list[[rep_pos]] <- output[[i]];
         }else{
             arg_list_length                    <- length(arg_list) + 1;
