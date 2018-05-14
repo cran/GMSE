@@ -33,6 +33,10 @@ gmse_apply <- function(res_mod  = resource,
 
     fun_warn(res_mod, obs_mod, man_mod, use_mod);
 
+    if(is.null(old_list) == FALSE){
+        old_list <- swap_old_gmse(old_list);
+    }
+    
     std_paras      <- pass_paras(old_list, ...);
     all_args       <- as.list(sys.call());
     all_args$PARAS <- std_paras$gmse_para_vect;
@@ -51,7 +55,7 @@ gmse_apply <- function(res_mod  = resource,
  
     # ------ RESOURCE MODEL ----------------------------------------------------
     res_args <- prep_res(arg_list = arg_vals, res_mod = res_mod);
-    check_args(arg_list = res_args, the_fun = res_mod);
+    check_args(arg_list = res_args, the_fun = res_mod);     
     res_results <- do.call(what = res_mod, args = res_args);
     res_results <- check_name_results(output   = res_results, 
                                       vec_name = "resource_vector", 
@@ -76,7 +80,7 @@ gmse_apply <- function(res_mod  = resource,
 
     # ------ MANAGER MODEL -----------------------------------------------------
     man_args    <- prep_man(arg_list = arg_vals, man_mod = man_mod);
-    check_args(arg_list = man_args, the_fun = man_mod);
+    check_args(arg_list = man_args, the_fun = man_mod); 
     man_results <- do.call(what = man_mod, args = man_args);
     man_results <- check_name_results(output   = man_results, 
                                       vec_name = "manager_vector", 
@@ -107,6 +111,34 @@ gmse_apply <- function(res_mod  = resource,
 ################################################################################
 # Subfunctions required                                                        #
 ################################################################################
+
+swap_old_gmse   <- function(ol){
+    names_old <- names(ol);
+    if("resource_array" %in% names_old == TRUE){
+        if(identical(ol$resource_array, ol$RESOURCES) == FALSE){
+            ol$RESOURCES <- ol$resource_array;
+        }
+        if(identical(ol$resource_array, ol$RESOURCE) == FALSE){
+            ol$RESOURCE <- ol$resource_array;
+        }
+    }
+    if("observation_array" %in% names_old == TRUE){
+        if(identical(ol$observation_array, ol$OBSERVATION) == FALSE){
+            ol$OBSERVATION <- ol$observation_array;
+        }
+    }
+    if("manager_array" %in% names_old == TRUE){
+        if(identical(ol$manager_array, ol$COST) == FALSE){
+            ol$COST <- ol$manager_array;
+        }
+    }
+    if("user_array" %in% names_old == TRUE){
+        if(identical(ol$user_array, ol$ACTION) == FALSE){
+            ol$ACTION <- ol$user_array;
+        }
+    }
+    return(ol);
+}
 
 update_old_gmse <- function(arg_vals, ol, list_add){
     names_old  <- names(ol);
@@ -527,6 +559,7 @@ update_old_gmse <- function(arg_vals, ol, list_add){
     return(ol);
 }
 
+
 apply_old_gmse <- function(arg_vals, old_list,  ...){
     
     input_list <- arg_vals$ilist; 
@@ -599,7 +632,7 @@ pass_paras <- function( old_list = NULL, time_max = 100, land_dim_1 = 100,
                         tend_crops = FALSE, tend_crop_yld = 0.2, 
                         kill_crops = FALSE, stakeholders = 4, 
                         manage_caution = 1, land_ownership = FALSE, 
-                        manage_freq = 1, converge_crit = 100, 
+                        manage_freq = 1, converge_crit = 1, 
                         manager_sense = 0.1, public_land = 0, 
                         group_think = FALSE, PARAS = NULL, ...
 ){
@@ -622,7 +655,6 @@ pass_paras <- function( old_list = NULL, time_max = 100, land_dim_1 = 100,
                     tend_crops, tend_crop_yld, kill_crops, stakeholders, 
                     manage_caution, land_ownership, manage_freq, converge_crit, 
                     manager_sense, public_land, group_think); 
-    
     
     paras_errors(input_list);
     
@@ -655,13 +687,13 @@ pass_paras <- function( old_list = NULL, time_max = 100, land_dim_1 = 100,
                6, 3, 9, 10, 18, 19, ttr, 16, 8, 1, 1, 15, 14, 1, 4, 5, 6, 10, 
                12, agn, agt, 1, 2, 3, 13, lkr, RESOURCE_ini, ttr+times_observe, 
                1, 0, lyr, lkr-1, 8, roc, coc, 4, 7, 0, 17, 0, 
-               -1*manager_sense*(1+lambda), -1*manager_sense*lambda, 1*lambda, 
+               -1*manager_sense, -1*manager_sense*lambda, 1*lambda, 
                1*manager_sense, tend_crop_yld, 1, 2, 15, 0, 0, 0, 0, 0, 
                user_res_opts[1], user_res_opts[2], user_res_opts[3], 
                user_res_opts[4], user_res_opts[5], user_lnd_opts[1], 
                user_lnd_opts[2], manage_caution, minimum_cost, user_budget, 
                converge_crit, RESOURCE_ini, lambda, group_think, fixed_recapt, 
-               land_ownership, public_land
+               land_ownership, public_land, manager_budget
     );
     
     return( list(gmse_user_input = as.vector(input_list), 
@@ -817,7 +849,7 @@ action_errors <- function(input_list, stakes, ...){
         }
     }
     if("resource_array" %in% arg_names){
-        res_pos <- which(arg_names == "RESOURCES")[1];
+        res_pos <- which(arg_names == "resource_array")[1];
         res_arr <- eval(arguments[[res_pos]]);
         if(is.null(dim(res_arr))){
             stop("ERROR: Dimensions of the resource_array are unclear");
@@ -1014,11 +1046,11 @@ paras_errors <- function(input_list){
     if(is.na(input_list[31]) == FALSE & input_list[31] %% 1 != 0){
         stop("ERROR: ga_chooseK must be greater than zero");
     }
-    if(input_list[37] < 1 | input_list[37] > 10000){
-        stop("User budget needs to be between 1 and 10000");
+    if(input_list[37] < 1 | input_list[37] > 100000){
+        stop("User budget needs to be between 1 and 100000");
     }
-    if(input_list[38] < 1 | input_list[37] > 10000){
-        stop("Manager budget needs to be between 1 and 10000");
+    if(input_list[38] < 1 | input_list[37] > 100000){
+        stop("Manager budget needs to be between 1 and 100000");
     }
     if(input_list[40]  <  1){
         stop("ERROR: Must have a positive number of initial resources");
@@ -1060,8 +1092,6 @@ paras_errors <- function(input_list){
         stop("ERROR: group_think must be TRUE/FALSE");
     }
 }
-
-
 
 argument_list <- function(res_mod, obs_mod, man_mod, use_mod, oth_vals){
     oth_names   <- names(oth_vals);
@@ -1245,7 +1275,7 @@ collect_res_ini <- function(arg_list){
         make_res_list[[9]] <- arg_list[[apos]];
     }
     make_res_list[[10]] <- arg_list$GMSE$max_ages;
-    if("res_consume" %in% arg_names){
+    if("max_ages" %in% arg_names){
         apos               <- which(arg_names == "max_ages");
         make_res_list[[10]] <- arg_list[[apos]];
     }
@@ -1843,6 +1873,7 @@ set_action_array <- function(arg_list){
 prep_man <- function(arg_list, man_mod){
     if( identical(man_mod, manager) == TRUE ){
         arg_list <- add_man_defaults(arg_list);
+        arg_list <- get_old_actions(arg_list);
     }
     man_args <- list();
     arg_name <- names(arg_list);
@@ -1853,8 +1884,25 @@ prep_man <- function(arg_list, man_mod){
         arg_pos         <- which(man_name[arg] == arg_name);
         man_args[[arg]] <- arg_list[[arg_pos]];
     }
-    names(man_args) <- man_name;
+    names(man_args) <- man_name; 
     return(man_args);
+}
+
+get_old_actions <- function(arg_list){
+    cols_action <- dim(arg_list$ACTION)[1];
+    user_places <- which(arg_list$AGENTS[,2] > 0);
+    old_actions <- sum(arg_list$ACTION[,8:cols_action,user_places]);
+    if( old_actions == 0 & is.null(arg_list$basic_output) == FALSE ){
+        tot_actions <- apply(X = arg_list$basic_output$user_results, MARGIN = 2, 
+                             FUN = sum);
+        act_vector  <- as.vector(tot_actions[2:6]);
+        act_vector[is.na(act_vector)] <- 0;
+        arg_list$ACTION[1,8:12,2] <- act_vector;
+        man_vector <- as.vector(arg_list$basic_output$manager_results[1,2:6]);
+        man_vector[is.na(man_vector)] <- arg_list$GMSE$minimum_cost;
+        arg_list$ACTION[3,8:13,1] <- c(man_vector, arg_list$GMSE$minimum_cost);
+    }
+    return(arg_list);
 }
 
 add_man_defaults <- function(arg_list){

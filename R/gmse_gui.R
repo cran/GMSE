@@ -215,7 +215,7 @@ gmse_gui <- function(){
                                         sliderInput("res_birth_K",
                                                     "Carrying capacity applied to birth",
                                                     min   = 10,
-                                                    max   = 10000,
+                                                    max   = 100000,
                                                     step  = 10,
                                                     value = 10000)
                                ),
@@ -224,7 +224,7 @@ gmse_gui <- function(){
                                         sliderInput("res_death_K",
                                                     "Carrying capacity applied to death",
                                                     min   = 10,
-                                                    max   = 10000,
+                                                    max   = 100000,
                                                     step  = 10,
                                                     value = 2000)
                                ),
@@ -242,7 +242,7 @@ gmse_gui <- function(){
                                         sliderInput("RESOURCE_ini",
                                                     "Initial population size",
                                                     min   = 10,
-                                                    max   = 10000,
+                                                    max   = 100000,
                                                     step  = 10,
                                                     value = 1000)
                                )
@@ -360,7 +360,7 @@ gmse_gui <- function(){
                                         sliderInput("manager_budget",
                                                     "Total manager policy-setting budget",
                                                     min   = 100,
-                                                    max   = 10000,
+                                                    max   = 100000,
                                                     step  = 100,
                                                     value = 1000)
                                ),
@@ -369,7 +369,7 @@ gmse_gui <- function(){
                                         sliderInput("manage_target",
                                                     "Target size of the resource population",
                                                     min   = 10,
-                                                    max   = 10000,
+                                                    max   = 100000,
                                                     step  = 10,
                                                     value = 1000)
                                ),
@@ -486,7 +486,7 @@ gmse_gui <- function(){
                                         sliderInput("user_budget",
                                                     "Total user action budget",
                                                     min   = 100,
-                                                    max   = 10000,
+                                                    max   = 100000,
                                                     step  = 100,
                                                     value = 1000)
                                )
@@ -518,13 +518,13 @@ gmse_gui <- function(){
                                                     value = 40)
                                ),
                                
-                               tags$div(title="The minimum number of generations in the genetic algorithms of the simulation (not the number of time steps in the simulation itself). The actions of each agent in the simulation are duplicated to the size of the population, and this population of individual agent actions undergoes a process of natural selection to find an adaptive strategy. If convergence criteria is set to a default value of 100, then the genetic algorithm will almost always continue for exactly this minimum number of generations. The default value is 20, which is usually plenty for finding adaptive agent strategies -- the objective is not to find optimal strategies, but strategies that are strongly in line with agent interests.",
+                               tags$div(title="The genetic algorithm will continue if the mean increase in figness from one generation to the next is greater than the convergence criteria. If convergence criteria is set to a default value of 1, then the genetic algorithm will continue as long as there is at least a one percent increase in fitness.",
                                         sliderInput("converge_crit",
                                                     "Convergence criteria before termination",
                                                     min   = 1,
                                                     max   = 200,
                                                     step  = 1,
-                                                    value = 100)
+                                                    value = 1)
                                ),
                                
                                tags$div(title="At the start of each genetic algorithm, a population of replicate agents are produced; this seed is the number of exact replicates, while the rest have random actions to introduce variation into the population. Because adaptive agent strategies are not likely to change wildly from one generation to the next, it is highly recommended to use some value greater than zero; the default value is 20, which does a good job of finding adaptive strategies.",

@@ -266,7 +266,7 @@ void res_to_counts(double ***population, int **interact_table, double *paras,
     
     foc_effect  = 0.0;
     foc_effect -= population[row][7][agent];  /* Times birth account for repr?*/
-    foc_effect -= population[row][8][agent]  * (1.0 + lambda);
+    foc_effect -= population[row][8][agent];
     foc_effect -= population[row][9][agent]  * lambda;
     foc_effect += population[row][10][agent] * lambda;
     foc_effect += population[row][11][agent]; /* But should affect offspring? */
@@ -417,7 +417,7 @@ void apply_min_costs(double ***population, double *paras, int agentID){
  *    agent_array: The agent array
  * ========================================================================== */
 void sum_array_layers(double ***array, double **out, int get_mean, 
-                      double *paras, double **agent_array){
+                      double *paras, double **agent_array, int layer_start){
     
     int row, col, layer, layer_count, ROWS, COLS, layers;
 
@@ -427,7 +427,7 @@ void sum_array_layers(double ***array, double **out, int get_mean,
     
     layer_count = 0;
     if(get_mean == 1){
-        for(layer = 0; layer < layers; layer++){
+        for(layer = layer_start; layer < layers; layer++){
             if(agent_array[layer][1] > 0){
                 layer_count++;
             }
@@ -436,7 +436,7 @@ void sum_array_layers(double ***array, double **out, int get_mean,
     for(row = 0; row < ROWS; row++){
         for(col = 0; col < COLS; col++){
             out[row][col] = 0;
-            for(layer = 0; layer < layers; layer++){
+            for(layer = layer_start; layer < layers; layer++){
                 if(agent_array[layer][1] > 0){
                     if(get_mean == 1){
                         out[row][col] += array[row][col][layer] / layer_count;
@@ -447,6 +447,36 @@ void sum_array_layers(double ***array, double **out, int get_mean,
             }                
         }
     }
+}
+
+/* =============================================================================
+ * This function updates an action based on the change in costs & paras
+ *     old_cost: The old cost of an action, as calculated in policy_to_counts
+ *     new_cost: The new cost of an action, as calculated in policy_to_counts
+ *     paras: Vector of global parameters
+ * ========================================================================== */
+int new_act(double old_cost, double new_cost, double old_act, double *paras){
+    
+    int total_acts;
+    double users, acts_per_user, total_cost;
+    double budget_for_act, mgr_budget, min_cost;
+    
+    users        = paras[54] - 1; /* Minus one for the manager */
+    min_cost     = paras[96];     /* Minimum cost of an action */
+    mgr_budget   = paras[105];    /* Manager's total budget    */
+    
+    total_cost    = 0.0;
+    if(old_cost < mgr_budget){
+        total_cost    = old_act * old_cost; /* Total cost devoted to action */
+    }
+
+    budget_for_act = (total_cost / users);  /* Cost devoted per user */
+
+    /* Calculate how many actions to expect per user, then total actions */
+    acts_per_user  = budget_for_act / (new_cost + min_cost);
+    total_acts     = (double) users * acts_per_user;
+
+    return(total_acts);
 }
 
 /* =============================================================================
@@ -465,7 +495,7 @@ void policy_to_counts(double ***population, double **merged_acts, int agent,
                       int action_row, int manager_row, double *paras){
     
     int col, COLS;
-    double old_cost, new_cost, cost_change, new_action;
+    double old_cost, new_cost, old_act, new_action;
     
     COLS   = (int) paras[69];
     
@@ -476,9 +506,11 @@ void policy_to_counts(double ***population, double **merged_acts, int agent,
             new_cost = 1;
             population[manager_row][col][agent] = new_cost;
         }
-        cost_change = old_cost / new_cost;
-        new_action  = merged_acts[action_row][col] * cost_change;
-        act_change[action_row][col] = floor(new_action);
+        
+        old_act     = merged_acts[action_row][col];
+        new_action  = new_act(old_cost, new_cost, old_act, paras);
+
+        act_change[action_row][col] = new_action;
     }
 }
 
@@ -529,8 +561,8 @@ void manager_fitness(double *fitnesses, double ***population, double **jaco,
         m_lyr++;
     }
     
-    sum_array_layers(ACTION, merged_acts, 0, paras, agent_array);
-    sum_array_layers(COST,  merged_costs, 1, paras, agent_array);
+    sum_array_layers(ACTION, merged_acts, 0, paras, agent_array, 0);
+    sum_array_layers(COST,  merged_costs, 1, paras, agent_array, 1);
     
     for(i = 0; i < ROWS; i++){ /* Actions > 0 to respond to possible change */
         for(j = 7; j < COLS; j++){
@@ -571,9 +603,6 @@ void manager_fitness(double *fitnesses, double ***population, double **jaco,
         for(i = 0; i < int_num; i++){
             change_dev += (count_change[i]-utils[i])*(count_change[i]-utils[i]);
         }
-        if(change_dev > max_dev){
-            max_dev = change_dev;
-        }
         dev_from_util[agent] = change_dev;
     }
     for(agent = 0; agent < pop_size; agent++){
@@ -595,6 +624,52 @@ void manager_fitness(double *fitnesses, double ***population, double **jaco,
     free(dev_from_util);
     free(utils);
     free(count_change);
+}
+
+/* =============================================================================
+ * This function will find the most fit of a vector of strategies
+ *   fitnesses: The fitness vector (higher values reflect higher fitness)
+ *   popsize: the length of the fitness vector
+ * ========================================================================== */
+int find_most_fit(double *fitnesses, int popsize){
+    
+    int most_fit, layer;
+    
+    most_fit = 0;
+    for(layer = 0; layer < popsize; layer++){
+        if(fitnesses[layer] > fitnesses[most_fit]){
+            most_fit = layer;
+        }
+    }
+    
+    return most_fit;
+}
+
+/* =============================================================================
+ * This function finds the percent change in fitness of a strategy
+ *   new_fitness: The new fitness from current genetic algorithm generation
+ *   old_fitness: The fitness from the previous genetic algorithm generation
+ *   managing: Whether (1) or not (0) fitness assessment is for managers
+ * ========================================================================== */
+double get_fitness_change(double new_fitness, double old_fitness, int managing){
+    
+    double fit_change;
+    
+    if(managing == 1){
+        if(old_fitness == 0){
+            old_fitness = -1.0;
+            new_fitness--;
+        }
+        fit_change  = 100.0 * (old_fitness - new_fitness) / new_fitness;
+    }else{
+        if(old_fitness == 0){
+            old_fitness = 1;
+            new_fitness++;
+        }
+        fit_change  = 100.0 * (new_fitness - old_fitness) / old_fitness;
+    }
+    
+    return fit_change;
 }
 
 /* =============================================================================
@@ -712,9 +787,9 @@ void ga(double ***ACTION, double ***COST, double **AGENT, double **RESOURCES,
         double ***LANDSCAPE, double **JACOBIAN, int **lookup, double *paras, 
         int agent, int managing){
     
-    int row, col, gen, layer, most_fit, popsize;
-    int generations, xdim, ydim, agentID, old_fitness, fit_change, *winners;
-    double budget, converge_crit, ***POPULATION, *fitnesses;
+    int row, col, gen, layer, most_fit, popsize, new_fitness;
+    int generations, xdim, ydim, agentID, old_fitness, *winners;
+    double budget, converge_crit, fit_change, ***POPULATION, *fitnesses;
 
     popsize        = (int) paras[21];
     generations    = (int) paras[22];
@@ -751,7 +826,7 @@ void ga(double ***ACTION, double ***COST, double **AGENT, double **RESOURCES,
     initialise_pop(ACTION, COST, paras, agent, budget, POPULATION, agentID);
     
     gen          = 0;
-    old_fitness  = -1.0;
+    old_fitness  = -10000.0;
     fit_change   = 10000;
     while(gen < generations || fit_change > converge_crit){
         
@@ -774,18 +849,12 @@ void ga(double ***ACTION, double ***COST, double **AGENT, double **RESOURCES,
    
         place_winners(&POPULATION, winners, paras);
         
-        most_fit = 0;
-        for(layer = 0; layer < popsize; layer++){
-            if(fitnesses[layer] > fitnesses[most_fit]){
-                most_fit = layer;
-            }
-        }
+        most_fit    = find_most_fit(fitnesses, popsize);
+        new_fitness = fitnesses[most_fit];
         
-        if(old_fitness == 0){
-            old_fitness = -1;
-        }
-        fit_change  = (fitnesses[most_fit] - old_fitness) / old_fitness;
-        old_fitness = fitnesses[most_fit];
+        fit_change  = get_fitness_change(new_fitness, old_fitness, managing);
+        
+        old_fitness = new_fitness;
 
         gen++;
     }
@@ -806,3 +875,5 @@ void ga(double ***ACTION, double ***COST, double **AGENT, double **RESOURCES,
     }
     free(POPULATION);
 }
+
+

@@ -6,10 +6,10 @@
 \usage{
 gmse(time_max = 100, land_dim_1 = 100, land_dim_2 = 100,
   res_movement = 20, remove_pr = 0, lambda = 0.3, agent_view = 10,
-  agent_move = 50, res_birth_K = 10000, res_death_K = 2000,
+  agent_move = 50, res_birth_K = 1e+05, res_death_K = 2000,
   edge_effect = 1, res_move_type = 1, res_birth_type = 2,
-  res_death_type = 2, observe_type = 0, fixed_mark = 50,
-  fixed_recapt = 150, times_observe = 1, obs_move_type = 1,
+  res_death_type = 2, observe_type = 0, fixed_mark = 100,
+  fixed_recapt = 500, times_observe = 1, obs_move_type = 1,
   res_min_age = 0, res_move_obs = TRUE, Euclidean_dist = FALSE,
   plotting = TRUE, hunt = FALSE, start_hunting = 95, res_consume = 0.5,
   ga_popsize = 100, ga_mingen = 40, ga_seedrep = 20, ga_sampleK = 20,
@@ -20,7 +20,7 @@ gmse(time_max = 100, land_dim_1 = 100, land_dim_2 = 100,
   castration = FALSE, feeding = FALSE, help_offspring = FALSE,
   tend_crops = FALSE, tend_crop_yld = 0.2, kill_crops = FALSE,
   stakeholders = 4, manage_caution = 1, land_ownership = FALSE,
-  manage_freq = 1, converge_crit = 100, manager_sense = 0.1,
+  manage_freq = 1, converge_crit = 0.1, manager_sense = 0.9,
   public_land = 0, group_think = FALSE)
 }
 \arguments{
@@ -40,7 +40,7 @@ gmse(time_max = 100, land_dim_1 = 100, land_dim_2 = 100,
 
 \item{agent_move}{This value determines how far agents can move. At the moment, this does not affect much in the simulation because agent movement does not affect agent actions (interactions with resources can be limited to stakeholder's owned land, but do not currently depend on where an agent is on the landscape -- effectively assuming that agents are mobile enough to do what they want to do to resources). The one exception is for density-based estimation, which can be biased by low values of agent_move by causing the manager to sample the same (or nearby) landscape cells to estimate total resource abundance; if resources are spatially autocorrelated, then managers might over or under-estimate total abundance. Therefore, as a default, this value is set to 50 so that managers can move to any cell on a (torus) landscape in a time step, removing any bias for density sampling.}
 
-\item{res_birth_K}{This value is the carrying capacity on new resources added per time step (e.g., birth). If more offspring are born in a time step than res_birth_K, then offspring are randomly removed from the population until offspring born equals res_birth_K. By default, carrying capacity is effectively applied to death instead of birth, so the default value of res_birth_K is set to 10000 (and hence not enacted because the number of births is never this high).}
+\item{res_birth_K}{This value is the carrying capacity on new resources added per time step (e.g., birth). If more offspring are born in a time step than res_birth_K, then offspring are randomly removed from the population until offspring born equals res_birth_K. By default, carrying capacity is effectively applied to death instead of birth, so the default value of res_birth_K is set to 100000 (and hence not enacted because the number of births is never this high).}
 
 \item{res_death_K}{This value is the carrying capacity on resources in the population. Carrying capacity is realised by an increase in mortality probability as resource abundance approaches res_death_K. In each time step, realised mortality probability equals the number of resources over carrying capacity divided by the number of resources (i.e., [resource count - carrying capacity] / resource count). Hence, as the resource abundance increases above carrying capcity, mortality probability also increases in proportion, generating some stochasticity in resource survival. Note that carrying capacity is independent of user actions; if a user culls a resource this culling is applied after mortality probability due to carrying capacity has already been calculated. The default value for res_death_K is 2000.}
 
@@ -78,13 +78,13 @@ gmse(time_max = 100, land_dim_1 = 100, land_dim_2 = 100,
 
 \item{ga_popsize}{The size of populations of agents in the genetic algorithm (not resources in the simulation). The actions of each agent in the simulation are duplicated `ga_popsize` times, and this population of individual agent actions undergoes a process of natural selection to find an adaptive strategy. Selection is naturally stronger in larger populations, but a default population size of 100 is more than sufficient to find adaptive strategies.}
 
-\item{ga_mingen}{The minimum number of generations in the genetic algorithms of the simulation (*not* the number of time steps in the simulation itself). The actions of each agent in the simulation are duplicated `ga_popsize` times, and this population of individual agent actions undergoes a process of natural selection at least `ga_mingen` times to find an adaptive strategy. If convergence criteria `converge_crit` is set to a default value of 100, then the genetic algorithm will almost always continue for exactly `ga_mingen` generations. The default value is 20, which is usually plenty for finding adaptive agent strategies -- the objective is not to find optimal strategies, but strategies that are strongly in line with agent interests.}
+\item{ga_mingen}{The minimum number of generations in the genetic algorithms of the simulation (*not* the number of time steps in the simulation itself). The actions of each agent in the simulation are duplicated `ga_popsize` times, and this population of individual agent actions undergoes a process of natural selection at least `ga_mingen` times to find an adaptive strategy. If convergence criteria `converge_crit` is set to a default value of 100, then the genetic algorithm will almost always continue for exactly `ga_mingen` generations. The default value is 40, which is usually plenty for finding adaptive agent strategies -- the objective is not to find optimal strategies, but strategies that are strongly in line with agent interests.}
 
 \item{ga_seedrep}{At the start of each genetic algorithm, `ga_popsize` replicate agents are produced; `ga_seedrep` of these replicates are *exact* replicates, while the rest have random actions to introduce variation into the population. Because adaptive agent strategies are not likely to change wildly from one generation to the next, it is highly recommended to use some value of `ga_seedrep` greater than zero; the default value is 20, which does a good job of finding adaptive strategies.}
 
-\item{ga_sampleK}{In the genetic algorithm, fitnesses are assigned to different agent strategies and compete in a tournament to be selected into the next generation. The tournament samples `ga_sampleK` strategies at random and with replacement from the population of `ga_popsize` to be included in the torunament. The default value is 20.}
+\item{ga_sampleK}{In the genetic algorithm, fitnesses are assigned to different agent strategies and compete in a tournament to be selected into the next generation. The tournament samples `ga_sampleK` strategies at random and with replacement from the population of `ga_popsize` to be included in the tournament. The default value is 20.}
 
-\item{ga_chooseK}{In the genetic algorithm, fitnesses are assigned to different agent strategies and compete in a tournament to be selected into the next generation. The tournament samples `ga_sampleK` strategies at random and with replacement from the population of `ga_popsize` to be included in the torunament, and from these randomly selected strategies, the top `ga_chooseK` strategies are selected. The default value is 2, so the top 10 percent of the random sample in a tournament makes it into the next generation (note that multiple tournaments are run until `ga_popsize` strategies are selected for the next generation).}
+\item{ga_chooseK}{In the genetic algorithm, fitnesses are assigned to different agent strategies and compete in a tournament to be selected into the next generation. The tournament samples `ga_sampleK` strategies at random and with replacement from the population of `ga_popsize` to be included in the tournament, and from these randomly selected strategies, the top `ga_chooseK` strategies are selected. The default value is 2, so the top 10 percent of the random sample in a tournament makes it into the next generation (note that multiple tournaments are run until `ga_popsize` strategies are selected for the next generation).}
 
 \item{ga_mutation}{In the genetic algorithm, this is the mutation rate of any action within an agent's strategy. When a mutation occurs, the action is either increased or decreased by a value of 1. If the action drops below zero, then the value after mutation is multiplied by -1.}
 
@@ -96,7 +96,7 @@ gmse(time_max = 100, land_dim_1 = 100, land_dim_2 = 100,
 
 \item{minimum_cost}{This is the mimimum cost of any action in the manager and user models. Higher values allow managers to have greater precision when setting policy. For example, managers believe (typically correctly) that they will double culling number by setting the cost of culling at 1 instead of 2. If actions always cost at least some minium value, then some increment just above that value is always available to more precisely affect user actions. Hence it is generally better to simply give everyone a bigger budget and set a minimum cost, giving more precision to managers to fine tune policy. The default value of minimum_cost is therefore set to 10.}
 
-\item{user_budget}{This is the total budget of each stakeholder for performing actions. The cost of performing an action is determined by the `miminimum_cost` of actions, and the policy set by the manager. The default `user_budget` is 1000. The maximum budget is 10000.}
+\item{user_budget}{This is the total budget of each stakeholder for performing actions. The cost of performing an action is determined by the `miminimum_cost` of actions, and the policy set by the manager. The default `user_budget` is 1000. The maximum budget is 100000.}
 
 \item{manager_budget}{This is the total budget for the manager when setting policy. Higher budgets make it easier to restrict the actions of stakeholders; lower budgets make it more difficult for managers to limit the actions of stakeholders by setting policy. The default `manager_budget` is 1000. The maximum budget is 10000.}
 
@@ -128,9 +128,9 @@ gmse(time_max = 100, land_dim_1 = 100, land_dim_2 = 100,
 
 \item{manage_freq}{This is the frequency with which policy is set by managers; a value of 1 means that policy is set in the manager model every time step; a value of 2 means that poilcy is set in the manager model every other time step, etc. The default value is 1.}
 
-\item{converge_crit}{This is the convergence criteria for terminating a genetic algorithm. After continuing for the minimum number of generations, `ga_mingen`, the genetic algorithm will terminate if the convergence criteria is met. Usually making this criteria low doesn't do much to improve adaptive strategies, so the default value is 100, which in practice cases the genetic algorithm to simply terminate after `ga_mingen` generations.}
+\item{converge_crit}{This is the convergence criteria for terminating a genetic algorithm. After continuing for the minimum number of generations, `ga_mingen`, the genetic algorithm will terminate if the convergence criteria is met. Usually making this criteria low doesn't do much to improve adaptive strategies; the default value is 1, which means that the genetic algorithm will continue as long as there is greater than a 1 percent increase in strategy fitness.}
 
-\item{manager_sense}{This adjusts the sensitivity that a manager assumes their actions have with respect to changes in costs (their policy). For example, given a `manage_sense` value of 0.1, if the cost of culling resources doubles, then instead of a manager assuming the the number of culled resources will be cut in half, the manager will instead assume that the number of resources culled will be cut by one half times one tenth. As a general rule, a value of ca 0.1 allows the manager to predict stake-holder responses to policy accurately; future versions of GMSE could allow managers to adjust this dynamically based on simulation history.}
+\item{manager_sense}{This adjusts the sensitivity that a manager assumes their actions have with respect to changes in costs (their policy). For example, given a `manage_sense` value of 0.9, if the cost of culling resources doubles, then instead of a manager assuming the the number of culled resources per user will be cut in half, the manager will instead assume that the number of resources culled will be cut by one half times eight tenths. As a general rule, a value of ca 0.8 allows the manager to predict stake-holder responses to policy accurately; future versions of GMSE could allow managers to adjust this dynamically based on simulation history.}
 
 \item{public_land}{The proportion of the landscape that will be public, and not owned by stakeholders. The remaining proportion of the landscape will be evenly divided among stakeholders. Note that this option is only available when land_ownership == TRUE.}
 
