@@ -11,6 +11,10 @@ Generalised Management Strategy Evaluation
 
 --------------------------------------------------------------------------------
 
+*This project has received funding from the [European Union's Horizon 2020 research and innovation programme](http://ec.europa.eu/programmes/horizon2020/) under grant agreement No 679651 to [Nils Bunnefeld](https://sti-cs.org/nils-bunnefeld/). Package maintainer [Brad Duthie](https://bradduthie.github.io/) is currently funded by a [Leverhulme Trust](https://www.leverhulme.ac.uk/) [ECF](https://www.leverhulme.ac.uk/funding/grant-schemes/early-career-fellowships).*
+
+--------------------------------------------------------------------------------
+
 ## Installation
 
 **Install from CRAN**
@@ -72,3 +76,26 @@ sim <- gmse_apply(res_mod = alt_res, X = 1000, stakeholders = 6);
 ```
 
 Problems or requests can be introduced on the GMSE GitHub [issues page](https://github.com/bradduthie/gmse/issues) or [Wiki](https://github.com/bradduthie/gmse/wiki), or emailed to [Brad Duthie](https://bradduthie.github.io/).
+
+## Documentation
+
+For additional help in getting started with GMSE, the following vignettes are available.
+
+- [GMSE introduction](https://cran.r-project.org/package=GMSE/vignettes/ms.pdf): A general overview of GMSE, including a short example simulation and how to interpret the output.
+- [The genetic algorithm](https://cran.r-project.org/package=GMSE/vignettes/SI1.pdf): Further details on what the genetic algorithm is and how it works in GMSE.
+- [Use of gmse_apply](https://cran.r-project.org/package=GMSE/vignettes/SI2.pdf): An extended introduction to the `gmse_apply` function, and how to use it to further customise simulations.
+- [Example case study](https://cran.r-project.org/package=GMSE/vignettes/SI3.pdf): An example case study illustrating how `gmse` or `gmse_gui` could be used to simulate a scenario of conflict between farmers and waterfowl conservation.
+- [Advanced options](https://cran.r-project.org/package=GMSE/vignettes/SI4.pdf): Example use of `gmse_apply` in the farmer and waterfowl [case study](https://cran.r-project.org/package=GMSE/vignettes/SI3.pdf) demonstrating advanced customisation that is possible in GMSE.
+- [Fisheries integration](https://cran.r-project.org/package=GMSE/vignettes/SI5.pdf): Introduction to how GMSE could be linked to other packages such as the [Fisheries Library in R](http://www.flr-project.org/) (FLR) using `gmse_apply`.
+- [Replicate simulations](https://cran.r-project.org/package=GMSE/vignettes/SI6.pdf): Introduction to the use of replicate simulatoins for model inference, with an example of how this can be done in GMSE.
+- [GMSE data structures](https://cran.r-project.org/package=GMSE/vignettes/SI7.pdf): Detailed explanation of key data structures used in GMSE.
+
+Descriptions of individual GMSE functions are provided in the [GMSE documentation](https://cran.r-project.org/package=GMSE/GMSE.pdf) available on CRAN.
+
+## Reference
+
+Duthie, A. B., J. J. Cusack, I. L. Jones, J. Minderman, E. B. Nilsen, R. A. Pozo, O. S. Rakotonarivo, B. Van Moorter, and N. Bunnefeld. 2018. GMSE: an R package for generalised management strategy evaluation. *bioRxiv*. [10.1101/221432](https://www.biorxiv.org/content/early/2017/11/17/221432).
+
+
+
+

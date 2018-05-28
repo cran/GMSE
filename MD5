@@ -1,10 +1,10 @@
-5ee8747d7f652cb80e5ac9026ba3368d *DESCRIPTION
+b42d5be9527fad8c0de27a9286e15ef3 *DESCRIPTION
 f2ba7c537d6640ab1e20860c2cd02c81 *NAMESPACE
 9e88a8f235d399d45fe9911f58585875 *R/SI5_data.R
 69d56fbea9268c24837330b8aa892221 *R/anecdotal.R
 e08094b3329dcd2651f59f5de3fe21c4 *R/be_user.R
-f6514a9ee15c8085db493faa7f30a367 *R/gmse.R
-4c1f3d14c1800887c3e1e8a757e2e7ea *R/gmse_apply.R
+c5a1997b1046483c3742b23eca3a6aeb *R/gmse.R
+7cd7aa7471224f55750ed98208027b7a *R/gmse_apply.R
 414edaf0d6b29b496e924ced688bca6f *R/gmse_gui.R
 f4e87051ffd5494a21537491f6a13070 *R/gmse_replicates.R
 5967c229ef17240c8f9073e53eed1d59 *R/gmse_summary.R
@@ -16,7 +16,7 @@ eb8750f4ba73daf991c010c0b23a5ae1 *R/landscape.R
 19d6ffe66c5aac6f261603190d0616ab *R/resource.R
 3202d847cb388f4fe5e06b7c7228b161 *R/scratch.R
 aeb29af80149889cbb490fc1c46bf22b *R/user.R
-97a1b0aa397e870d03780fd03baa96d0 *README.md
+a37923460fd68c50338f7f0a707843fd *README.md
 3585ae5be818dcd4b09c92d3fcbd38f7 *build/vignette.rds
 c9d6ea414788da66cfad27fff175052a *data/nsher_data.rda
 0ed3687968c1ba7c2d5edb725996ebca *inst/doc/SI1.pdf
@@ -25,9 +25,9 @@ d83b42851e99b206224e5e18fdbb3cb7 *inst/doc/SI2.pdf
 708fa1c972a10750fefe0002e5fa6296 *inst/doc/SI2.pdf.asis
 e76486ba2306fe26051859018a5f86b0 *inst/doc/SI3.pdf
 44e3c748226c0444be10371afe0f4a8e *inst/doc/SI3.pdf.asis
-324efbd1287c37811b8ea8d303184375 *inst/doc/SI4.pdf
+9fd1958cc7e9e32c32e3f1951b04eca6 *inst/doc/SI4.pdf
 a050b3dbbbc7407393d298f1f3627410 *inst/doc/SI4.pdf.asis
-2533e4128af63210e6ed9c9cef8efbcf *inst/doc/SI5.pdf
+dcba5f18d9b97428181148935444d4ae *inst/doc/SI5.pdf
 2216ec2597d9e9c97ee70f2cd5265cbe *inst/doc/SI5.pdf.asis
 c462fe9800e650f66f85f277b9109097 *inst/doc/SI6.pdf
 043d7d8b5efa5b14e956bdbca76325e6 *inst/doc/SI6.pdf.asis
@@ -42,7 +42,7 @@ ced429be591f0cc8a0b72575601746cb *man/age_land.Rd
 a2bedc1a70a81c9b6f27e480d3e1e5d7 *man/case23plot.Rd
 f266550fdf9fecc8038d0bd39081999d *man/chapman_est.Rd
 ca4f2ca5b0aab2c168fb937b1c19980a *man/dens_est.Rd
-dc525f95666058155ad046c69518e00e *man/gmse.Rd
+31c8451b15e38a091586c7323c9e8404 *man/gmse.Rd
 d0a29f4e56a33f9ad73e81f927995dc4 *man/gmse_apply.Rd
 74e0b9a4c22b3b4dd091b7637e5cbc87 *man/gmse_gui.Rd
 a19121c2ca477e6d34509b6d1402cb50 *man/gmse_replicates.Rd
@@ -65,7 +65,7 @@ f8e93ba44331ad5e4e43aa630624ea50 *man/resource.Rd
 0d1a917798415e16d9df3c513b5f4e55 *man/ssb.n.Rd
 ff10a225426843149079237e2f364dcc *man/user.Rd
 ab073785cf5fbcf8769b7867633321f2 *man/utility_layer.Rd
-044af4d8951e28e2ec58640a6525cf87 *src/game.c
+c79ee758477d187753ec79d0b2a58e64 *src/game.c
 d9deba6d4ab89cb7be2b89550b791b5b *src/game.h
 cf33901f417c8e85e0ec796369c740bc *src/gmse_init.c
 30e0ee2ee7496248888213b2e2e86758 *src/manager.c
