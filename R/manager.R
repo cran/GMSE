@@ -62,13 +62,13 @@ manager <- function(RESOURCES   = NULL,
         if(!is.array(OBSERVATION)){
             stop("Warning: Observation needs to be in an array");
         }
-        if(dim(RESOURCES)[2] != 20){
+        if(dim(RESOURCES)[2] != 22){
             stop("The RESOURCES array has the wrong number of columns");
         }
         if(dim(LAND)[3] != 3){
             stop("The landscape doesn't have enough layers");
         }
-        if(dim(AGENTS)[2] != 17){
+        if(dim(AGENTS)[2] != 27){
             stop("The agent array has the wrong number of columns");
         }
         # If all checks out, then run the manager model

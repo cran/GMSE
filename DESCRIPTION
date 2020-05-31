@@ -1,12 +1,13 @@
 Package: GMSE
 Type: Package
 Title: Generalised Management Strategy Evaluation Simulator
-Version: 0.4.0.13
+Version: 0.6.0.4
 Imports: grDevices (>= 3.4.0), graphics (>= 3.4.0), stats(>= 3.4.0),
         shiny, shinydashboard, shinyjs
 Authors@R: c(person("A. Bradley", "Duthie", email = "brad.duthie@gmail.com",
                   role = c("aut", "cre"),
                   comment = c(ORCID = "0000-0001-8343-4995")),
+             person("Adrian", "Bach", role = c("ctb")),
              person("Nils", "Bunnefeld", role = c("ctb", "fnd"),
                     comment = c(ORCID = "0000-0002-1349-4463")),
              person("Jeremy", "Cusack", role = "ctb",
@@ -44,10 +45,11 @@ LazyData: TRUE
 Encoding: UTF-8
 VignetteBuilder: R.rsp
 Suggests: knitr, rmarkdown, testthat, R.rsp
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.0
 NeedsCompilation: yes
-Packaged: 2020-02-04 10:15:46 UTC; brad
+Packaged: 2020-05-30 23:39:14 UTC; brad
 Author: A. Bradley Duthie [aut, cre] (<https://orcid.org/0000-0001-8343-4995>),
+  Adrian Bach [ctb],
   Nils Bunnefeld [ctb, fnd] (<https://orcid.org/0000-0002-1349-4463>),
   Jeremy Cusack [ctb] (<https://orcid.org/0000-0003-3004-1586>),
   Isabel Jones [ctb] (<https://orcid.org/0000-0002-8361-1370>),
@@ -57,4 +59,4 @@ Author: A. Bradley Duthie [aut, cre] (<https://orcid.org/0000-0001-8343-4995>),
   Sarobidy Rakotonarivo [ctb] (<https://orcid.org/0000-0002-8032-1431>),
   Bram Van Moorter [ctb] (<https://orcid.org/0000-0002-3196-1993>)
 Repository: CRAN
-Date/Publication: 2020-02-04 10:50:03 UTC
+Date/Publication: 2020-05-31 01:40:12 UTC
