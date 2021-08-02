@@ -208,7 +208,16 @@ void res_remove(double **res_removing, double *paras){
     csr             = paras[116]; /* Consumption required for survival */
     
     switch(type){
-        case 0: /* No removal */
+        case -1: /* No removal at all and no old age */
+            break;
+        case 0: /* No old age; only removal due to users */
+            for(resource = 0; resource < resource_number; resource++){
+                rm_from_Ind = res_removing[resource][rm_adj];
+                rand_unif   = runif(0, 1);
+                if(rand_unif < rm_from_Ind){
+                    res_removing[resource][rm_col] = -1;   
+                }
+            }
             break;
         case 1:
             for(resource = 0; resource < resource_number; resource++){
@@ -287,10 +296,10 @@ void res_remove(double **res_removing, double *paras){
             break;
     }
     for(resource = 0; resource < resource_number; resource++){
-        if(res_removing[resource][age_col] > max_age){
+        if(res_removing[resource][age_col] > max_age && type > 0){
             res_removing[resource][rm_col] = -1;
         }
-        if(res_removing[resource][cons_col] < csr){
+        if(res_removing[resource][cons_col] < csr && type > 0){
             res_removing[resource][rm_col] = -1;
         }
     }
@@ -309,9 +318,10 @@ void res_remove(double **res_removing, double *paras){
 void res_landscape_interaction(double **resource_array, double ***landscape,
                                double *paras, int resource_number){
                               
-    int resource_type_col, resource_type, resource_effect;
+    int resource_type_col, resource_type, resource_effect, is_dead, res_type;
     int landscape_layer, resource, x_col, y_col, x_pos, y_pos, gadj, klld;
-    double c_rate, esize_grow, esize_death, land_grow, land_die;
+    int cons_col;
+    double c_rate, esize_grow, esize_death, land_grow, land_die, fd_st, fd_ed;
     
     x_col             = (int) paras[33];
     y_col             = (int) paras[34];
@@ -321,19 +331,25 @@ void res_landscape_interaction(double **resource_array, double ***landscape,
     resource_type     = (int) paras[45];
     resource_effect   = (int) paras[47];
     landscape_layer   = (int) paras[48];
+    cons_col          = (int) paras[115]; /* col in res_removing of consump */
     esize_grow        = paras[86];
     esize_death       = paras[87];
     
     for(resource = 0; resource < resource_number; resource++){
-        if(resource_array[resource][resource_type_col] == resource_type){
+        res_type = (int) resource_array[resource][resource_type_col];
+        is_dead  = (int) resource_array[resource][klld];
+        if(res_type == resource_type && is_dead < 1){
             x_pos  = resource_array[resource][x_col];
             y_pos  = resource_array[resource][y_col];
             c_rate = resource_array[resource][resource_effect];
-            landscape[x_pos][y_pos][landscape_layer] *= (1 - c_rate);
+            fd_st  = landscape[x_pos][y_pos][landscape_layer];
+            fd_ed  = landscape[x_pos][y_pos][landscape_layer] * (1 - c_rate);
+            landscape[x_pos][y_pos][landscape_layer] = fd_ed;
             land_grow = (c_rate * esize_grow)  * resource_array[resource][9];
             land_die  = (c_rate * esize_death) * resource_array[resource][10];
-            resource_array[resource][gadj] += land_grow;
-            resource_array[resource][klld] += land_die;
+            resource_array[resource][cons_col] += (fd_st - fd_ed);
+            resource_array[resource][gadj]     += land_grow;
+            resource_array[resource][klld]     += land_die;
         } 
     }
 }
@@ -397,7 +413,8 @@ void resource_feeding(double **resource_array, double ***landscape,
 
     fed = (int *) malloc(resource_number * sizeof(int));
     for(resource = 0; resource < resource_number; resource++){
-        is_dead = resource_array[resource][rm_row];
+        fed[resource] = 0;
+        is_dead       = resource_array[resource][rm_row];
         if(is_dead < 1){
             fed[resource]  = resource_array[resource][fed_col];
             tot_fed       += fed[resource];
@@ -412,11 +429,15 @@ void resource_feeding(double **resource_array, double ***landscape,
                     
         resource_feeds(resource_array, landscape, paras, resource);
         
-        move_a_resource(resource_array, landscape, paras, resource);
+        if(fed[resource] > 1){
+            move_a_resource(resource_array, landscape, paras, resource);
+        }
         
         fed[resource]--;
         tot_fed--;
     }
+    
+    free(fed);
 }
 
 

@@ -1,7 +1,7 @@
 ![](https://raw.githubusercontent.com/bradduthie/gmse/1727ea37f32f0f40df8ee6e8277d0d1723c88639/notebook/images/GMSE_logo_name.png)
 
-[![](http://www.r-pkg.org/badges/version/GMSE?color=yellowgreen)](https://cran.r-project.org/package=GMSE) [![](http://cranlogs.r-pkg.org/badges/grand-total/GMSE?color=yellowgreen)](http://cranlogs.r-pkg.org/badges/grand-total/GMSE)
-[![](http://cranlogs.r-pkg.org/badges/last-month/GMSE?color=yellowgreen)](http://cranlogs.r-pkg.org/badges/last-month/GMSE)
+[![](http://www.r-pkg.org/badges/version/GMSE?color=yellowgreen)](https://cran.r-project.org/package=GMSE) [![](https://cranlogs.r-pkg.org:443/badges/grand-total/GMSE?color=yellowgreen)](https://cranlogs.r-pkg.org:443/badges/grand-total/GMSE)
+[![](https://cranlogs.r-pkg.org:443/badges/last-month/GMSE?color=yellowgreen)](https://cranlogs.r-pkg.org:443/badges/last-month/GMSE)
 
 
 Generalised Management Strategy Evaluation
@@ -11,7 +11,7 @@ Generalised Management Strategy Evaluation
 
 --------------------------------------------------------------------------------
 
-*This project has received funding from the [European Union's Horizon 2020 research and innovation programme](http://ec.europa.eu/programmes/horizon2020/) under grant agreement No 679651 to [Nils Bunnefeld](https://sti-cs.org/nils-bunnefeld/). Package maintainer [Brad Duthie](https://bradduthie.github.io/) is currently funded by a [Leverhulme Trust](https://www.leverhulme.ac.uk/) [ECF](https://www.leverhulme.ac.uk/funding/grant-schemes/early-career-fellowships).*
+*This project has received funding from the [European Union's Horizon 2020 research and innovation programme](https://ec.europa.eu/programmes/horizon2020/) under grant agreement No 679651 to [Nils Bunnefeld](https://sti-cs.org/nils-bunnefeld/). Package maintainer [Brad Duthie](https://bradduthie.github.io/) has been funded by a [Leverhulme Trust](https://www.leverhulme.ac.uk/) [ECF](https://www.leverhulme.ac.uk/early-career-fellowships).*
 
 --------------------------------------------------------------------------------
 
@@ -51,8 +51,7 @@ sim <- gmse();
 Optional arguments taken by gmse() are used to specify simulation parameter values. Simulation results will be plotted automatically given the default `plotting = TRUE`, but can be plotted again using the `plot_gmse_results` function.
 
 ```
-plot_gmse_results(res = sim$resource, obs = sim$observation, land = sim$land, 
-agents = sim$agents, paras = sim$paras, ACTION = sim$action, COST = sim$cost)
+plot_gmse_results(sim);
 ```
 
 Simulations can also be run from a browser-based graphical user interface by running the `gmse_gui()` function.
@@ -86,16 +85,27 @@ For additional help in getting started with GMSE, the following vignettes are av
 - **Use of gmse_apply**: An extended introduction to the `gmse_apply` function, and how to use it to further customise simulations.
 - **Example case study**: An example case study illustrating how `gmse` or `gmse_gui` could be used to simulate a scenario of conflict between farmers and waterfowl conservation.
 - **Advanced options**: Example use of `gmse_apply` in the farmer and waterfowl case study demonstrating advanced customisation that is possible in GMSE.
-- **Fisheries integration**: Introduction to how GMSE could be linked to other packages such as the [Fisheries Library in R](http://www.flr-project.org/) (FLR) using `gmse_apply`.
+- **Fisheries integration**: Introduction to how GMSE could be linked to other packages such as the [Fisheries Library in R](https://flr-project.org/) (FLR) using `gmse_apply`.
 - **Replicate simulations**: Introduction to the use of replicate simulatoins for model inference, with an example of how this can be done in GMSE.
 - **GMSE data structures**: Detailed explanation of key data structures used in GMSE.
+- **Adaptive timing of investment strategy**: Example in which managers intervene adaptively based on the deviation of a population from its target.
 
 Descriptions of individual GMSE functions are provided in the [GMSE documentation](https://cran.r-project.org/package=GMSE/GMSE.pdf) available on CRAN.
 
-## Reference
+## GMSE References
 
-Duthie, A. B., Cusack, J. J., Jones, I. L., Nilsen, E. B., Pozo, R. A., Rakotonarivo, O. S., Van Moorter, B, and Bunnefeld, N. (2018). GMSE: an R package for generalised management strategy evaluation. *Methods in Ecology and Evolution*. https://doi.org/10.1101/221432
+Duthie, A. B., Cusack, J. J., Jones, I. L., Nilsen, E. B., Pozo, R. A., Rakotonarivo, O. S., Moorter, B. Van, & Bunnefeld, N. (2018). GMSE: an R package for generalised management strategy evaluation. *Methods in Ecology and Evolution*, 9, 2396-2401. https://doi.org/10.1101/221432
 
+Duthie, A. B., A. Bach, & J. Minderman (2021). GMSE: Generalised Management Strategy Evaluation Simulator. R package version 0.7.0.0. https://confoobio.github.io/gmse/
 
+## Publications using GMSE
+
+Nilsson, L., Bunnefeld, N., Jeroen, M., & Duthie, A. B. (2021). Effects of stakeholder empowerment on crane population and agricultural population. *Ecological Modelling*, 440, 109396. https://doi.org/10.1016/j.ecolmodel.2020.109396
+
+Cusack, J. J., Duthie, A. B., Minderman, J., Jones, I. L., Rakotonarivo, O. S., & Bunnefeld, N. (2020). Integrating conflict, lobbying, and compliance to predict the sustainability of natural resource use. Ecology and Society, 25(2), 13.
+
+Bunnefeld, N., Pozo, R.A., Cusack, J.J., Duthie, A.B. & Minderman, J. 2020. Development of 
+a population model tool to predict shooting levels of Greenland barnacle geese on Islay.  
+*Scottish Natural Heritage Research Report No. 1039.*
 
 

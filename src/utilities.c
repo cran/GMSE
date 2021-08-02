@@ -4,7 +4,7 @@
 #include <Rmath.h>
 
 /* =============================================================================
- * This function checks to see if a resource is of the correct type combination
+ * This function samples a rand in with a min of 'from' and max of 'to - 1'
  * ========================================================================== */
 int get_rand_int(int from, int to){
     
@@ -12,13 +12,13 @@ int get_rand_int(int from, int to){
     
     do{
         rand_value = (int) floor( runif(from, to) );
-    }while(rand_value == to  );
+    }while(rand_value == to);
     
     return rand_value;
 }
 
 /* =============================================================================
- * This function checks to see if a resource is of the correct type combination
+ * This function checks to see if an agent is on the land that they own
  * ========================================================================== */
 void is_on_owner_land(int res_number, double **resources, int owner,
                       double ***land, int *ident_vector){
@@ -61,8 +61,13 @@ void is_correct_type(int res_number, double **resources, int type1, int type2,
  * Find the descending order of positions in an array of length 'length'
  * ========================================================================== */
 void find_descending_order(int *order_array, double *by_array, int length){
-    int i, k, max_index;
+    int i, k, max_index, *sarray;
     double max_val, min_val;
+    
+    sarray  = malloc(length * sizeof(int));
+    for(i = 0; i < length; i++){
+        sarray[i] = order_array[i];
+    }
     
     k = 0;
     min_val = 0;
@@ -81,10 +86,13 @@ void find_descending_order(int *order_array, double *by_array, int length){
             }
         }
         by_array[max_index] = min_val - 1;
-        order_array[k]      = order_array[max_index]; 
+        order_array[k]      = sarray[max_index]; 
         k++;   
     }
+
+    free(sarray);
 }
+
 
 /* =============================================================================
  * Swap pointers to rewrite ARRAY_B into ARRAY_A for a an array of any dimension
@@ -157,7 +165,7 @@ int unif_move(int max_move){
         rand_uni = runif(0, 1);
     } while(rand_uni == 1.0);
     
-    raw_move = rand_uni * max_move;
+    raw_move = rand_uni * (max_move + 1);
     move_len = (int) floor(raw_move);
     move_dir = (int) rand_dir();
     the_move = move_dir * move_len;
