@@ -152,7 +152,7 @@ void crossover(double ***population, double *paras, int agentID){
 void mutation(double ***population, double *paras, int agentID){
     
     int agent, row, col, start_col, col_check, pop_size, ROWS, COLS;
-    int col_start_other, col_start_self, mu_magnitude;
+    int col_start_other, col_start_self, mu_magnitude, start_row, mu_max;
     double do_mutation, half_pr, pr;
 
     pop_size        = (int) paras[21];
@@ -161,11 +161,13 @@ void mutation(double ***population, double *paras, int agentID){
     COLS            = (int) paras[69];
     col_start_other = (int) paras[70];
     col_start_self  = (int) paras[71];
-
+    start_row       = (int) paras[138];
+    mu_max          = (int) paras[142];
+    
     half_pr = 0.5 * pr;
     
     for(agent = 0; agent < pop_size; agent++){
-        for(row = 0; row < ROWS; row++){
+        for(row = start_row; row < ROWS; row++){
             start_col = col_start_self;
             col_check = population[row][0][agent];
             if(col_check > 0 && col_check != agentID){
@@ -174,11 +176,19 @@ void mutation(double ***population, double *paras, int agentID){
             for(col = start_col; col < COLS; col++){
                 do_mutation = runif(0,1);
                 if( do_mutation < half_pr){
-                    mu_magnitude                 = get_rand_int(1, 10);
+                    if(mu_max == 1){
+                        mu_magnitude = 1;
+                    }else{
+                        mu_magnitude = get_rand_int(1, mu_max);   
+                    }
                     population[row][col][agent] -= mu_magnitude;
                 }
                 if( do_mutation > (1 - half_pr) ){
-                    mu_magnitude                 = get_rand_int(1, 10);
+                    if(mu_max == 1){
+                        mu_magnitude = 1;
+                    }else{
+                        mu_magnitude = get_rand_int(1, mu_max);
+                    }
                     population[row][col][agent] += mu_magnitude;
                 }
                 if( population[row][col][agent] < 0 ){
@@ -367,8 +377,8 @@ void strategy_fitness(double **agent_array, double ***population, double *paras,
       a_row++;
     }
     
-    count_change = malloc(int_num * sizeof(double));
-    utilities    = malloc(int_num * sizeof(double));
+    count_change = (double *) malloc(int_num * sizeof(double));
+    utilities    = (double *) malloc(int_num * sizeof(double));
     
     for(agent = 0; agent < pop_size; agent++){
         for(i = 0; i < int_num; i++){
@@ -499,7 +509,7 @@ int new_action(double old_cost, double new_cost, double old_act){
  * ========================================================================== */
 void policy_to_counts(double ***population, double **merged_acts, int agent,
                       double **merged_costs, double **act_change, 
-                      int action_row, int manager_row, double *paras, int gen){
+                      int action_row, int manager_row, double *paras){
     
     int col, COLS;
     double old_cost, new_cost, old_act, new_act;
@@ -539,10 +549,12 @@ void policy_to_counts(double ***population, double **merged_acts, int agent,
  * ========================================================================== */
 void manager_fitness(double *fitnesses, double ***population, double **jaco,
                      double **agent_array, int **interact_table, int agentID, 
-                     double ***COST, double ***ACTION, double *paras, int gen){
+                     double ***COST, double ***ACTION, double *paras){
     
     int agent, i, j, m_lyr, action_row, manager_row, type1, type2, type3;
     int pop_size, int_num, ROWS, COLS, psc, pcu, pca, pfe, phe, n_agents;
+    int sim_ann;
+    
     double *count_change, foc_effect, change_dev, max_dev;
     double *dev_from_util, *utils, **merged_acts, **merged_costs, **act_change;
     
@@ -556,19 +568,20 @@ void manager_fitness(double *fitnesses, double ***population, double **jaco,
     pca      = (int) paras[76];
     pfe      = (int) paras[77];
     phe      = (int) paras[78];
+    sim_ann  = (int) paras[137];
     
-    count_change  = malloc(int_num * sizeof(double));
-    utils         = malloc(int_num * sizeof(double));
-    dev_from_util = malloc(pop_size * sizeof(double));
-    merged_acts   = malloc(ROWS * sizeof(double *));
+    count_change  = (double *) malloc(int_num * sizeof(double));
+    utils         = (double *) malloc(int_num * sizeof(double));
+    dev_from_util = (double *) malloc(pop_size * sizeof(double));
+    merged_acts   = (double **) malloc(ROWS * sizeof(double *));
     for(i = 0; i < ROWS; i++){
         merged_acts[i] = malloc(COLS * sizeof(double));
     }
-    merged_costs = malloc(ROWS * sizeof(double *));
+    merged_costs = (double **) malloc(ROWS * sizeof(double *));
     for(i = 0; i < ROWS; i++){
         merged_costs[i] = malloc(COLS * sizeof(double));
     }
-    act_change = malloc(ROWS * sizeof(double *));
+    act_change = (double **) malloc(ROWS * sizeof(double *));
     for(i = 0; i < ROWS; i++){
         act_change[i] = malloc(COLS * sizeof(double));
     }
@@ -604,7 +617,7 @@ void manager_fitness(double *fitnesses, double ***population, double **jaco,
                 manager_row++;
             }
             policy_to_counts(population, merged_acts, agent, merged_costs, 
-                             act_change, action_row, manager_row, paras, gen);
+                             act_change, action_row, manager_row, paras);
             foc_effect   = 0.0;
             foc_effect  += agent_array[m_lyr][psc] * act_change[action_row][7]; 
             foc_effect  += agent_array[m_lyr][pcu] * act_change[action_row][8]; 
@@ -626,7 +639,11 @@ void manager_fitness(double *fitnesses, double ***population, double **jaco,
         dev_from_util[agent] = change_dev;
     }
     for(agent = 0; agent < pop_size; agent++){
-        fitnesses[agent] = max_dev - dev_from_util[agent];
+      if(sim_ann > 0){
+        fitnesses[agent] = 10000000 - dev_from_util[agent];
+      }else{
+        fitnesses[agent] = 10000000 - dev_from_util[agent]; 
+      }
     }
     
     for(i = 0; i < ROWS; i++){
@@ -679,8 +696,8 @@ double get_fitness_change(double new_fitness, double old_fitness, int managing){
         if(old_fitness == 0){
             old_fitness = -1.0;
             new_fitness--;
-        }
-        fit_change  = 100.0 * (old_fitness - new_fitness) / new_fitness;
+        } /* Note, managers *minimise* the squared distance */
+        fit_change  = 100.0 * (old_fitness - new_fitness) / old_fitness;
     }else{
         if(old_fitness == 0){
             old_fitness = 1;
@@ -710,8 +727,8 @@ void tournament(double *fitnesses, int *winners, double *paras){
     sampleK  = (int) paras[24];
     chooseK  = (int) paras[25];
     
-    samples  = malloc(sampleK * sizeof(int));
-    samp_fit = malloc(sampleK * sizeof(double));
+    samples  = (int *) malloc(sampleK * sizeof(int));
+    samp_fit = (double *) malloc(sampleK * sizeof(double));
     placed   = 0;
     
     if(chooseK > sampleK){
@@ -759,11 +776,11 @@ void place_winners(double ****population, int *winners, double *paras){
     ROWS     = (int) paras[68];
     COLS     = (int) paras[69];
     
-    NEW_POP    = malloc(ROWS * sizeof(double *));
+    NEW_POP    = (double ***) malloc(ROWS * sizeof(double **));
     for(row = 0; row < ROWS; row++){
-        NEW_POP[row]    = malloc(COLS * sizeof(double *));
+        NEW_POP[row]    = (double **) malloc(COLS * sizeof(double *));
         for(col = 0; col < COLS; col++){
-            NEW_POP[row][col]    = malloc(pop_size * sizeof(double));
+            NEW_POP[row][col] = (double *) malloc(pop_size * sizeof(double));
         }
     }
     
@@ -806,16 +823,17 @@ void place_winners(double ****population, int *winners, double *paras){
 void ga(double ***ACTION, double ***COST, double **AGENT, double **RESOURCES,
         double ***LANDSCAPE, double **JACOBIAN, int **lookup, double *paras, 
         int agent, int managing){
-    
-    int row, col, gen, layer, most_fit, popsize, new_fitness;
-    int generations, xdim, ydim, agentID, old_fitness, *winners;
-    double budget, converge_crit, fit_change, ***POPULATION, *fitnesses;
 
+    int row, col, gen, layer, most_fit, popsize;
+    int generations, xdim, ydim, agentID, *winners;
+    double new_fitness, old_fitness;
+    double budget, converge_crit, fit_change, ***POPULATION, *fitnesses;
+    
     popsize        = (int) paras[21];
     generations    = (int) paras[22];
     xdim           = (int) paras[68];
     ydim           = (int) paras[69];
-    converge_crit  = (double)paras[98];
+    converge_crit  = (double) paras[98];
     agentID        = (int) AGENT[agent][0];
     
     most_fit       = 0;
@@ -833,11 +851,11 @@ void ga(double ***ACTION, double ***COST, double **AGENT, double **RESOURCES,
         paras[131] = budget;
     }
     
-    POPULATION = malloc(xdim * sizeof(double *));
+    POPULATION = (double ***) malloc(xdim * sizeof(double **));
     for(row = 0; row < xdim; row++){
-        POPULATION[row] = malloc(ydim * sizeof(double *));
+        POPULATION[row] = (double **) malloc(ydim * sizeof(double *));
         for(col = 0; col < ydim; col++){
-            POPULATION[row][col] = malloc(popsize * sizeof(double));
+            POPULATION[row][col] = (double *) malloc(popsize * sizeof(double));
         }
     }
     for(layer = 0; layer < popsize; layer++){
@@ -848,8 +866,8 @@ void ga(double ***ACTION, double ***COST, double **AGENT, double **RESOURCES,
         }
     }  
     
-    fitnesses = malloc(popsize * sizeof(double));
-    winners   = malloc(popsize * sizeof(int));
+    fitnesses = (double *) malloc(popsize * sizeof(double));
+    winners   = (int *) malloc(popsize * sizeof(int));
     
     for(row = 0; row < popsize; row++){ /* Need to initialise to some values */
         fitnesses[row] = 0;
@@ -872,10 +890,12 @@ void ga(double ***ACTION, double ***COST, double **AGENT, double **RESOURCES,
         if(managing == 1){
             apply_min_costs(POPULATION, paras, agentID);
             manager_fitness(fitnesses, POPULATION, JACOBIAN, AGENT, lookup, 
-                            agentID, COST, ACTION, paras, gen);
+                            agentID, COST, ACTION, paras);
+            paras[140] += popsize;
         }else{
             strategy_fitness(AGENT, POPULATION, paras, fitnesses, JACOBIAN, 
                              lookup, agentID); 
+            paras[140] += popsize;
         }
   
         tournament(fitnesses, winners, paras);
@@ -884,11 +904,9 @@ void ga(double ***ACTION, double ***COST, double **AGENT, double **RESOURCES,
         
         most_fit    = find_most_fit(fitnesses, popsize);
         new_fitness = fitnesses[most_fit];
-        
         fit_change  = get_fitness_change(new_fitness, old_fitness, managing);
-        
         old_fitness = new_fitness;
-
+        
         gen++;
     }
  
@@ -909,4 +927,177 @@ void ga(double ***ACTION, double ***COST, double **AGENT, double **RESOURCES,
     free(POPULATION);
 }
 
+/* =============================================================================
+ * This function uses simulated annealing for agents to make decisions
+ *  Inputs include:
+ *      ACTION:    An array of the action of agents
+ *      COST:      An array of the cost of actions for each agent
+ *      AGENT:     An array of *row agents and *col traits for each agent
+ *      RESOURCES: An array of *row resources & *col traits for each resource
+ *      LANDSCAPE: An array of *row by *col size that makes up the landscape
+ *      JACOBIAN:  A Jacobian matrix of resource type and landscape effects
+ *      lookup:    A table indexing types with rows of interaction array
+ *      paras:     Parameters read into the function for population processes
+ *      agent:     The row of the agent undergoing a genetic algorithm
+ *      managing:  Whether or not the agent is managing a population
+ * ========================================================================== */
+void sa(double ***ACTION, double ***COST, double **AGENT, double **RESOURCES,
+        double ***LANDSCAPE, double **JACOBIAN, int **lookup, double *paras, 
+        int agent, int managing){
+    
+  int kmax, k, temp, agentID, xdim, ydim, row, col, popsize, layer, sa_init;
+  double budget, pr_jump, rand_pr, save_copies, save_ROWS, save_popsize; 
+  double save_st_row, save_mu, *fitnesses, *fitnesses_n, *fit_init;
+  double ***ACTION_init, ***ACTION_temp;
+  
+  agentID      = (int) AGENT[agent][0];
+  popsize      = (int) paras[21];
+  save_popsize = paras[21];
+  save_copies  = paras[23];
+  save_mu      = paras[26];
+  save_ROWS    = paras[68];
+  save_st_row  = paras[138];
+  xdim         = (int) paras[68];
+  ydim         = (int) paras[69];
+  paras[23]    = 0.0;
+  paras[26]    = 1.0;
+  if(managing == FALSE){
+    paras[68] = 2.0;
+  }else{
+    paras[68]  = 3.0;
+    paras[138] = 2.0;
+  }
+
+  fitnesses   = (double *) malloc(sizeof(double));  
+  fitnesses_n = (double *) malloc(sizeof(double));  
+  fit_init    = (double *) malloc(popsize * sizeof(double));
+  
+  fitnesses[0]   = 0.0;
+  fitnesses_n[0] = 0.0;
+  
+  budget         = AGENT[agent][16] + AGENT[agent][24] + AGENT[agent][25];
+  
+  ACTION_init = (double ***) malloc(xdim * sizeof(double **));
+  for(row = 0; row < xdim; row++){
+      ACTION_init[row] = (double **) malloc(ydim * sizeof(double *));
+    for(col = 0; col < ydim; col++){
+        ACTION_init[row][col] = (double *) malloc(popsize * sizeof(double));
+    }
+  }
+  for(col = 0; col < ydim; col++){
+    for(row = 0; row < xdim; row++){
+        for(layer = 0; layer < popsize; layer++){
+            ACTION_init[row][col][layer] = 0;
+        }
+    }
+  }
+  
+  initialise_pop(ACTION, COST, paras, agent, budget, ACTION_init, agentID);
+  constrain_costs(ACTION_init, COST, paras, agent, budget, agentID);
+  
+  paras[141]   = 0;
+  
+  if(managing == 1){
+      apply_min_costs(ACTION_init, paras, agentID);
+      manager_fitness(fit_init, ACTION_init, JACOBIAN, AGENT, lookup, 
+                      agentID, COST, ACTION, paras);
+      paras[141]++;
+  }else{
+      strategy_fitness(AGENT, ACTION_init, paras, fit_init, JACOBIAN, 
+                       lookup, agentID); 
+      paras[141]++;
+  }
+  
+  sa_init   = find_most_fit(fit_init, popsize);
+  paras[21] = 1.0;
+  
+  ACTION_temp = (double ***) malloc(xdim * sizeof(double **));
+  for(row = 0; row < xdim; row++){
+      ACTION_temp[row] = (double **) malloc(ydim * sizeof(double *));
+      for(col = 0; col < ydim; col++){
+          ACTION_temp[row][col] = (double *) malloc(sizeof(double));
+      }
+  }
+  for(col = 0; col < ydim; col++){
+      for(row = 0; row < xdim; row++){
+          ACTION_temp[row][col][0] =  ACTION_init[row][col][sa_init];
+      }
+  }
+  
+  k    = 0;
+  kmax = (int) paras[139];
+  while(k < kmax){
+    temp = 1 - ((1 + k) / kmax);
+    
+    constrain_costs(ACTION_temp, COST, paras, agent, budget, agentID);
+    
+    if(managing == 1){
+      apply_min_costs(ACTION_temp, paras, agentID);
+      manager_fitness(fitnesses, ACTION_temp, JACOBIAN, AGENT, lookup, 
+                      agentID, COST, ACTION, paras);
+      paras[141]++;
+    }else{
+      strategy_fitness(AGENT, ACTION_temp, paras, fitnesses, JACOBIAN, 
+                       lookup, agentID); 
+      paras[141]++;
+    }
+    
+    mutation(ACTION_temp, paras, agentID);
+    
+    constrain_costs(ACTION_temp, COST, paras, agent, budget, agentID);
+    
+    if(managing == 1){
+      apply_min_costs(ACTION_temp, paras, agentID);
+      manager_fitness(fitnesses_n, ACTION_temp, JACOBIAN, AGENT, lookup, 
+                      agentID, COST, ACTION, paras);
+      paras[141]++;
+    }else{
+      strategy_fitness(AGENT, ACTION_temp, paras, fitnesses_n, JACOBIAN, 
+                       lookup, agentID); 
+      paras[141]++;
+    }
+
+    if(fitnesses_n[0] < fitnesses[0]){
+      pr_jump = exp(-(fitnesses[0] - fitnesses_n[0]) / temp); 
+      rand_pr = runif(0, 1);
+      if(pr_jump > rand_pr){
+        for(col = 0; col < ydim; col++){
+          for(row = 0; row < xdim; row++){
+            ACTION[row][col][agent] = ACTION_temp[row][col][0];
+          }
+        } 
+      }
+    }else{
+      for(col = 0; col < ydim; col++){
+        for(row = 0; row < xdim; row++){
+          ACTION[row][col][agent] = ACTION_temp[row][col][0];
+        }
+      } 
+    }
+
+    for(col = 0; col < ydim; col++){
+      for(row = 0; row < xdim; row++){
+        ACTION_temp[row][col][0] = ACTION[row][col][agent];
+      }
+    } 
+    k++;
+  }
+
+  paras[21]  = save_popsize;
+  paras[23]  = save_copies;
+  paras[26]  = save_mu;
+  paras[68]  = save_ROWS;
+  paras[138] = save_st_row;
+  
+  for(row = 0; row < xdim; row++){
+    for(col = 0; col < ydim; col++){
+      free(ACTION_init[row][col]);   
+    }
+    free(ACTION_init[row]); 
+  }
+  free(ACTION_init);
+  free(fit_init);
+  free(fitnesses_n);
+  free(fitnesses);
+}
 
