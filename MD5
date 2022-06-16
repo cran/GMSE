@@ -1,4 +1,4 @@
-cbcecb6d106f8e5cca1f0c17329093ce *DESCRIPTION
+7d6bba3836db8729bb102439b0f30df5 *DESCRIPTION
 b6cc4ed59585a2631f503ba6a787c46f *NAMESPACE
 360e41686b23f2164040bbc234bb2c31 *NEWS.md
 9e88a8f235d399d45fe9911f58585875 *R/SI5_data.R
@@ -17,7 +17,7 @@ ce17f9cdf4bbb5752c97fa17c9764c10 *R/landscape.R
 197faa9af8d9105cf68a248f4faacb1d *R/plotting.R
 ec52614d7493c629890e08a82c2de89f *R/resource.R
 4dd0c347c3ab02654ce4ae722dca39b2 *R/user.R
-3766613525aae83d31be6134e9d9829a *README.md
+3fc359b5d8f0d228de751c50d71384d5 *README.md
 8fbb57fb2f66ed9b2ef99f2a1fec3b16 *build/vignette.rds
 c9d6ea414788da66cfad27fff175052a *data/nsher_data.rda
 8892d4429a7250b2b9de691066612fff *inst/doc/SI1.pdf
@@ -94,7 +94,7 @@ ec40efe37987116ea1e15f86f6230a52 *tests/testthat/test-make_costs.R
 50763d6cc94e5af5631862be26520e80 *tests/testthat/test-make_interaction.R
 46a87dd81fdb03b0512369676f9ed50f *tests/testthat/test-make_landscape.R
 4b8bc89449442649aa89b90c272845ba *tests/testthat/test-make_resource.R
-3d408b75b03a89d09731ca1ffc9bdb2a *tests/testthat/test-make_utilities.R
+5928f30ad5011b153bfd7058cd69d28a *tests/testthat/test-make_utilities.R
 f3e1614870669e3ddb1b550a5efd47b2 *tests/testthat/test-manager.R
 92e951602c55df0bffcc4b70ff7804f2 *tests/testthat/test-observation.R
 41a46bcc2f59065efd65952a619a64bf *tests/testthat/test-resource.R
